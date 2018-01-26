@@ -1,0 +1,173 @@
+<style>
+    #create_modal, #edit_modal ，#image_modal{
+        width: 800px;
+        margin-left: -400px;
+    }
+
+    #create_modal .dropdown.selection,#image_modal, #edit_modal .dropdown.selection {
+        width: 800px;
+    }
+
+</style>
+
+<div class="ui form">
+    <div class="six fields" >
+        <div class="field">
+            <label>名称</label>
+        </div>
+        <div class="field">
+            <label>开始时间</label>
+        </div>
+        <div class="field">
+            <label>结束时间</label>
+        </div>
+        <div class="field">
+
+        </div>
+        <div class="field">
+        </div>
+    </div>
+    <div class="six fields" id="ui_form">
+        <div class="field">
+            <div class="ui input">
+                <input type="text" placeholder="Search..." id="search" value= <%= keyword %>>
+            </div>
+        </div>
+        <div class="field">
+            <div class="ui calendar" id="example1">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id='time1' type="text" placeholder="Date" value= <%= from %>>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="ui calendar" id="example2">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id="time2" type="text" placeholder="Date" value= <%= to %>>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+
+        </div>
+        <div class="field">
+            <div class="ui positive submit button" onclick="search()">
+                <i class="icon search"></i> 搜索
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</div>
+<div class="ui grey segment tablebox abc " style="box-shadow:0 0 0 0;">
+    <table class="ui small very basic table">
+        <thead>
+        <tr>
+
+            <th>企业名称</th>
+            <th>类别</th>
+            <th>服务商</th>
+            <th>服务商计费模式</th>
+            <th>总支出</th>
+            <th>总收入</th>
+            <th>盈利</th>
+
+        </tr>
+        </thead>
+        <tbody class="list">
+        <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+        for (var i in rows) {
+            var row = rows[i];
+
+            if (!row.api) {
+                row.api = {}
+            }
+        %>
+        <tr>
+
+            <td>
+                <%= row['name'] %>
+            </td>
+            <td>
+                <%= row['category']=='person'?"个人":"企业" %>
+            </td>
+            <td>
+                <%= row['provider'] %>
+            </td>
+            <td>
+                <%= row['billing_mode']==0?"查询计费":"查得计费" %>
+            </td>
+            <td>
+                <%= row['total_cost'] %>
+            </td>
+            <td>
+                <%= row['total_income'] %>
+            </td>
+            <td>
+                <%= row['total_profit'] %>
+            </td>
+
+        </tr>
+        <%
+        }
+        %>
+        <% } else { %>
+        <tr>
+            <td colspan="5" style="text-align:center;">暂无数据</td>
+        </tr>
+        <% } %>
+        </tbody>
+    </table>
+</div>
+<%- common.paging("/trial_account", "user_id=", totalPage, offset, limit, 5) %>
+<script type="text/javascript">
+    $(function () {
+        //设置菜单为选中状态
+        //activeUrl();
+        $(".dropdown").dropdown();
+        $('#example1').calendar({
+            type: 'date',
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+        $('#example2').calendar({
+            type: 'date',
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+    });
+    //按照日期模糊搜索
+    function search() {
+        var from = $("#time1 ", "#ui_form").val();
+        var to = $("#time2", "#ui_form").val();
+        var keyWord = $("#search", "#ui_form").val();
+        var status = $("#text_search", "#ui_form").val();
+        location.href = encodeURI("?keyword=" + keyWord + "&from=" + from + "&to=" + to + "&status=" + status + "&limit=<%= limit %>");
+    }
+
+</script>

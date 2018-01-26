@@ -1,0 +1,36 @@
+{
+  "port":3000,
+  "host":"http://10.3.2.74",
+  "qiniu_host":"http://files.uniccat.com/",
+  "redis":{
+    "host":"10.3.10.33",
+    "port":6379,
+    "connectTimeout": 3000
+  },
+  "weixinpay":{
+    "appid":"wx9036661cba762c8e",
+    "mch_id":"1469642202",
+    "partner_key":"CHINAYOUTHCREDITzhongqingxinyong"
+  },
+  "elasticsearch":{
+    "host":"192.168.1.210",
+    "port":9200
+  },
+
+  "mongodb":{
+    "host":"mongodb://10.3.2.78:27017/credit",
+    "user":"",
+    "pass":"",
+    "extra":{
+      "server":{
+        "auto_connect":true,
+        "poolSize":10,
+        "socketOptions" :{
+          "timeOut":1000,
+          "keepAlive": 1
+        }
+      }
+    }
+  },
+  "limit":10
+}

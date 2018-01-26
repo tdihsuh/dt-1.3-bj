@@ -1,0 +1,303 @@
+<style>
+    #create_modal, #edit_modal {
+        width: 800px;
+        margin-left: -400px;
+    }
+
+    #create_modal .dropdown.selection, #edit_modal .dropdown.selection {
+        width: 800px;
+    }
+</style>
+
+<div class="ui form">
+    <div class="five fields">
+
+        <div class="field">
+            <label>用户名</label>
+            <div class="ui left input">
+                <input id="username" name="username"/>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>公司</label>
+            <div class="ui left input">
+                <input id="company" name="company"/>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>API</label>
+            <div class="ui left input">
+                <select id="api_id" name="api_id" class="ui fluid dropdown">
+                    <option value="all">全部</option>
+                    <%
+                    for (var i in apis) {
+                        var api = apis[i];
+                    %>
+                    <option value="<%= api['_id'] %>"><%= api['name'] %></option>
+                    <%
+                    }
+                    %>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>查询状态</label>
+            <div class="ui left input">
+                <select id="query_status" name="query_status" class="ui fluid dropdown">
+                    <option value="all">全部</option>
+                    <option value="1">命中</option>
+                    <option value="0">未命中</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+
+        </div>
+
+    </div>
+</div>
+
+
+<div class="ui form">
+    <div class="five fields">
+
+        <div class="field">
+            <label>开始时间</label>
+            <div class="ui calendar" id="example1">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id='time1' type="text" placeholder="Date" value= <%= from %>>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>结束时间</label>
+            <div class="ui calendar" id="example2">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id='time2' type="text" placeholder="Date" value= <%= to %>>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <div class="ui positive submit button" onclick="search()">
+                <i class="icon search"></i> 搜索
+            </div>
+        </div>
+
+        <div class="field">
+            <label>&nbsp;</label>
+            <div class="ui positive submit button" onclick="searchOut()">
+                <i class="file icon"></i> 导出Excel
+            </div>
+        </div>
+        <div class="field">
+        </div>
+
+    </div>
+</div>
+
+
+<div class="ui grey segment tablebox" style="box-shadow:0 0 0 0;">
+    <table class="ui small very basic table">
+        <thead>
+        <tr>
+            <th></th>
+            <th>用户名</th>
+            <th>公司</th>
+            <th>查询方式</th>
+            <th>API</th>
+            <th>费用</th>
+            <th>状态</th>
+            <th>计费方式</th>
+            <th>消费明细</th>
+            <th>查询参数</th>
+            <th width="100">查询时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+        for (var i in rows) {
+            var row = rows[i];
+
+            if (!row.api) {
+                row.api = {}
+            }
+        %>
+        <tr>
+            <td style='color:#999;'><%= parseInt(offset) + parseInt(i) + 1 %></td>
+            <td><%= row['user']['username'] %></td>
+            <td><%= row['user']['company'] %></td>
+            <td><%= row['group_id'] ? "WEB端查询" : "API调用" %></td>
+            <td>
+                <%
+                    var queries = row['queries'];
+                queries.forEach(function(q) {
+                    var name = q.api ? q.api.name : '';
+                %>
+                <%= name %><br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+                <%
+                    var queries = row['queries'];
+                    var total = 0;
+                    queries.forEach(function (q) {
+                        total += q.charged;
+                    });
+                %>
+                <%= total %> 元
+            </td>
+            <td>
+                <%
+                    var queries = row['queries'];
+                queries.forEach(function(q) {
+                %>
+                <%- q.query_status == 1 ? '<i class="green check circle icon"></i>' : '<i class="radio icon"></i>' %>
+                <br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+                <%
+                    var queries = row['queries'];
+                queries.forEach(function(q) {
+                    var billing_mode = q.apply ? (q.apply.billing_mode == 0 ? '查询' : '查得') : '';
+                %>
+                <%= billing_mode %><br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+                <%
+                    var queries = row['queries'];
+                queries.forEach(function(q) {
+                %>
+                <%= q.charged ? q.charged.toFixed(2) : "0" %> 元<br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+                <%
+                    var queries = row['queries'];
+                queries.forEach(function(q) {
+                    var query = JSON.parse(q.query)
+                %>
+                <%= query.identity_name %> <%= query.identity_code %> <%= query.mobile %><br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+                <%= common.format_date(row['created'], 'yyyy-MM-dd hh:mm:ss') %>
+            </td>
+        </tr>
+        <%
+        }
+        %>
+        <% } else { %>
+        <tr>
+            <td colspan="10" style="text-align:center;">暂无数据</td>
+        </tr>
+        <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- common.paging("/consumptions", "username=" + username +  "&from=" + from + "&to=" + to +"&company=" + company + "&api_id=" + api_id + "&query_status=" + query_status, totalPage, offset, limit, 5) %>
+
+<script type="text/javascript">
+    $(function () {
+        $('#username').val("<%= username %>");
+        $('#company').val("<%= company %>");
+        $('#api_id').val("<%= api_id %>");
+        $('#query_status').val("<%= query_status %>");
+        $(".dropdown").dropdown();
+        $('#example1').calendar({
+            type: 'date',
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+        $('#example2').calendar({
+            type: 'date',
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+    });
+
+    function search() {
+        var from = $("#time1").val();
+        var to = $("#time2").val();
+        var fromTime = Date.parse(new Date(from));
+        var toTime = Date.parse(new Date(to));
+        if (parseInt(fromTime) > parseInt(toTime)) {
+            alert('结束时间必须大于开始时间')
+            return
+        }
+        location.href = encodeURI("?username=" + $('#username').val() + "&from=" + from + "&to=" + to + "&company=" + $('#company').val() + "&api_id=" + $('#api_id').val() + "&query_status=" + $('#query_status').val() + "&limit=<%= limit %>");
+    }
+
+    //导出表格
+    function searchOut() {
+        $.ajax({
+            type: "get",
+            url: "/consumptions_excel/" + "?username=" + $('#username').val() + "&from=" + $("#time1").val() + "&to=" + $("#time2").val() + "&company=" + $('#company').val() + "&api_id=" + $('#api_id').val() + "&query_status=" + $('#query_status').val(),
+            data: '',
+            timeout: 1000000, //超时时间设置，单位毫秒
+            success: function (data) {
+                swal({
+                        title: "生成成功",
+                        text: '',
+                        type: "success",
+                        confirmButtonText: "确定",
+                    },
+                    function () {
+                        window.location.href = data.url;
+                    });
+            },
+            complete: function (XMLHttpRequest, status) {
+                if (status == 'timeout') {//超时,status还有success,error等值的情况
+                    ajaxTimeOut.abort(); //取消请求
+                    alert("请求超时");
+                }
+            },
+            error: function (err) {
+                swal(err.responseText, "", "error");
+            }
+        });
+    }
+
+
+</script>

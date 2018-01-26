@@ -1,0 +1,363 @@
+<style>
+    #create_modal, #edit_modal {
+        width: 500px;
+        margin-left: -250px;
+    }
+
+    #create_modal .dropdown.selection, #edit_modal .dropdown.selection {
+        width: 460px;
+    }
+</style>
+
+<div class="ui form">
+    <div class="five fields">
+        <div class="field">
+            <!-- <label>消息类型</label>
+             <div class="ui left input">
+                 <select id="message_type" name="message_type">
+                     <option value="升级提示">升级提示</option>
+                 </select>
+             </div>-->
+        </div>
+        <div class="field">
+            <!-- <label>开始时间</label>
+            <div class="ui calendar" id="calender_s">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id="end_time" type="text" placeholder="Date" value="<%= from %>">
+                </div>
+            </div>-->
+        </div>
+        <div class="field">
+            <!-- <label> 结束时间</label>
+            <div class="ui calendar" id="calender_e">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id="end_time" type="text" placeholder="Date" value="<%= to %>">
+                </div>
+            </div>-->
+        </div>
+        <div class="field">
+            <!-- <label>&nbsp;</label>
+             <div class="ui positive submit button" onclick="search()">
+                 <i class="icon search"></i> 搜索
+             </div>-->
+        </div>
+        <div class="field"></div>
+        <div class="right floated field clearfix" style="width:400px;padding-top:25px">
+            <button class="ui positive right floated button" onclick="create();">
+                <i class="icon write"></i>
+                添加新消息
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="ui grey segment tablebox" style="box-shadow:0 0 0 0;">
+    <table class="ui small very basic table">
+        <thead>
+        <tr>
+            <th width="40"></th>
+            <th width="200">消息类型</th>
+            <th width="500" >消息内容</th>
+            <th>消息对象</th>
+            <th width="100">生效时间</th>
+            <th width="100">结束时间</th>
+            <th width="100">状态</th>
+            <th width="100">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+        for (var i in rows) {
+            var row = rows[i];
+        %>
+        <tr>
+            <td style='color:#999;'><%= parseInt(offset) + parseInt(i) + 1 %></td>
+            <td>
+                <%= row['message_type'] %>
+            </td>
+            <td style="white-space: pre-line "   >
+                <%= row['content'] %>
+            </td>
+            <td>
+                <%= row['target'] %>
+            </td>
+            <td>
+                <%= common.format_date(row['from'], 'yyyy-MM-dd hh:mm:ss') %>
+            </td>
+            <td>
+                <%= common.format_date(row['to'], 'yyyy-MM-dd hh:mm:ss') %>
+            </td>
+            <td>
+                <% if(row['status'] == 0){ %>
+                已过期
+                <% } else if (row['status'] == 1){ %>
+                生效
+                <% }else { %>
+                未生效
+                <% } %>
+            </td>
+            <td>
+                <% if (row['status'] != 0) {
+                %>
+                <a href="javascript:;" onclick="edit_row('<%= row['_id'] %>');">编辑</a> &nbsp;&nbsp;
+                <a href="javascript:;" onclick="delete_row('<%= row['_id'] %>');">删除</a> &nbsp;&nbsp;
+                <% } %>
+            </td>
+        </tr>
+        <%
+        }
+        %>
+        <% } else { %>
+        <tr>
+            <td colspan="5" style="text-align:center;">暂无数据</td>
+        </tr>
+        <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- common.paging("/messages", "&message_type=" + message_type + "&from=" + from + "&to=" + to, totalPage, offset, limit, 5) %>
+<div class="ui modal" id="create_modal">
+    <i class="close icon"></i>
+    <div class="tiny header">
+        添加新消息
+    </div>
+    <div class="content">
+        <form class="ui form" id="create_form">
+            <div class="field">
+                <label class="required_input">消息类型</label>
+                <input type="hidden" name="gender">
+                <select id="message_type" class="ui dropdown" style="width:60%">
+                    <option value="升级提示">升级提示</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="required_input">消息对象</label>
+                <select id="message_obj" class="ui dropdown" style="width:60%">
+                    <option value="web端用户">web端用户</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="required_input">消息内容</label>
+                <div class="ui right labeled input">
+          <textarea name="" id="message_content" cols="30" rows="10" maxlength="200"
+                    onfocus="if(value=='限200字'){value=''}"
+                    onblur="if (value ==''){value='限200字'}">限200字</textarea>
+                </div>
+            </div>
+            <div class="field">
+                <label class="required_input">生效时间</label>
+                <div class="ui calendar" id="calender_start">
+                    <div class="ui input left icon">
+                        <i class="calendar icon"></i>
+                        <input id="start_time" type="text" placeholder="Date" value="">
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="required_input">结束时间</label>
+                <div class="ui calendar" id="calender_end">
+                    <div class="ui input left icon">
+                        <i class="calendar icon"></i>
+                        <input id="end_time" type="text" placeholder="Date" value="">
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="ui hidden divider"></div>
+    </div>
+    <div class="actions">
+        <div class="ui deny button">取消</div>
+        <div class="ui positive right labeled icon button">保存<i class="checkmark icon"></i></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $(".dropdown").dropdown();
+        $('#message_type').val("<%= message_type %>");
+        $('#calender_s').calendar({
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+        $('#calender_e').calendar({
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+
+    });
+
+    function search() {
+        location.href = encodeURI("?username=" + $('#username').val() + "&company=" + $('#company').val() + "&limit=<%= limit %>");
+    }
+
+    function create() {
+        postParms(Date.now())
+    }
+
+    function edit_row(_id) {
+        $.get("/messages/" + _id, function (data, status) {
+            if (status == 'success') {
+                $("#message_type", "#create_modal").val();
+                $("#message_obj", "#create_modal").val();
+                $("#message_content", "#create_modal").val(data.content);
+                $("#start_time", "#create_modal").val(getDate(data.from));
+                $("#end_time", "#create_modal").val(getDate(data.to));
+                postParms(data.created);
+            }
+        });
+    }
+
+    function delete_row(_id) {
+        $.ajax({
+            type: "delete",
+            url: "/messages/" + _id,
+            success: function(data) {
+                swal({
+                        title: "操作成功",
+                        text: data.message,
+                        type: "success",
+                        confirmButtonText: "确定",
+                    },
+                    function () {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 330);
+                    });
+            },
+            complete: function(XMLHttpRequest, status) {
+            },
+            error: function(err) {
+                swal(err.responseText, "", "error");
+            }
+        });
+
+    }
+
+    function getDate(time) {
+        //time是整数，否则要parseInt转换
+        var time = new Date(time);
+        var y = time.getFullYear();
+        var m = time.getMonth() + 1;
+        var d = time.getDate();
+        var h = time.getHours();
+        var mm = time.getMinutes();
+        var s = time.getSeconds();
+        return y + '-' + add0(m) + '-' + add0(d) + ' ' + add0(h) + ':' + add0(mm) + ':' + add0(s);
+    };
+
+    function postParms(created) {
+
+        $('#create_modal').modal({
+            autofocus: false,
+            onApprove: function () {
+                var messageType = $("#message_type", "#create_modal").val();
+                var message_obj = $("#message_obj", "#create_modal").val();
+                var messageContent = $("#message_content", "#create_modal").val();
+                var startTime = $("#start_time", "#create_modal").val();
+                var endTime = $("#end_time", "#create_modal").val();
+                if (messageContent == '限200字' || messageContent.trim() == '') {
+                    swal("消息内容不能为空", "", "warning");
+                    return false;
+                }
+                if (!endTime) {
+                    swal("请填写时间", "", "warning");
+                    return false;
+                }
+                if (!startTime) {
+                    swal("请填写时间", "", "warning");
+                    return false;
+                }
+                var from = Date.parse(new Date(startTime));
+                var to = Date.parse(new Date(endTime));
+                if (from > to) {
+                    swal("结束时间必须大于开始时间", "", "warning");
+                    return false;
+                }
+                params = {
+                    message_type: messageType,
+                    target: message_obj,
+                    content: messageContent,
+                    from: from,
+                    to: to,
+                    created: created,
+                }
+                //添加消息
+                $.post("/add_message", params, function (data, status) {
+                    console.log(params);
+                    if (status == "success") {
+                        swal({
+                                title: "操作成功",
+                                text: data.message,
+                                type: "success",
+                                confirmButtonText: "确定",
+                            },
+                            function () {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 330);
+                            });
+                    } else {
+                        swal(data, "", "error");
+                    }
+                }).error(function (err) {
+                    swal(err.responseText, "", "error");
+                });
+                return false;
+            }
+        }).modal('show');
+        var today = new Date();
+        $('#calender_end').calendar({
+           minDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() ,today.getHours(),today.getSeconds()),
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+        $('#calender_start').calendar({
+            minDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() ,today.getHours(),today.getSeconds()),
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+
+    }
+</script>

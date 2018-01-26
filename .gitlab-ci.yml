@@ -1,0 +1,49 @@
+stages:
+  - test
+  - deploy_test
+  - deploy_production
+
+cache:
+  paths:
+    - node_modules/
+
+
+# 测试
+测试:
+  stage: test
+  only:
+    - master
+    - tags
+  script:
+    - echo 'test'
+
+
+# 部署测试服务器
+部署测试环境:
+  stage: deploy_test
+  only:
+    - master
+  tags:
+    - test
+  script:
+    - sh deploy.sh test $CI_BUILD_TAG
+
+
+# 部署生产服务器
+部署生产环境服务器 1:
+  stage: deploy_production
+  only:
+    - tags
+  tags:
+    - production1
+  script:
+    - sh deploy.sh production $CI_BUILD_TAG
+
+部署生产环境服务器 2:
+  stage: deploy_production
+  only:
+    - tags
+  tags:
+    - production2
+  script:
+    - sh deploy.sh production $CI_BUILD_TAG

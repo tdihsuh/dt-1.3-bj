@@ -1,0 +1,49 @@
+{
+  "port":3000,
+  "host":"https://uniccat.com",
+  "qiniu_host":"http://files.uniccat.com/",
+  "redis":{
+    "host":"10.10.110.121",
+    "port":6379,
+    "connectTimeout": 3000
+  },
+  "elasticsearch":{
+    "host":"192.168.1.210",
+    "port":9200
+  },
+  "weixinpay":{
+    "appid":"wx9036661cba762c8e",
+    "mch_id":"1469642202",
+    "partner_key":"CHINAYOUTHCREDITzhongqingxinyong"
+  },
+  "mongodb":{
+    "host":"mongodb://10.10.111.81:27017/credit,mongodb://10.10.111.82:27017/credit,mongodb://10.10.111.83:27017/credit?slaveOk=true",
+    "extra":{
+      "replset": {
+        "strategy": "ping",
+        "replicaSet": "report_rs",
+        "auto_reconnect":true,
+        "maxPoolSize":50,
+        "readSecondary": false,
+        "socketOptions" : {
+          "timeOut":10000,
+          "keepAlive" : 1
+        }
+      },
+      "user":"credit",
+      "pass":"Kkktu4@K2",
+      "db": {"readPreference": "primaryPreferred"},
+      "server":{
+        "readPreference" : "primaryPreferred",
+        "auto_reconnect":true,
+        "maxPoolSize":50,
+        "socketOptions" :{
+          "timeOut":10000,
+          "keepAlive" : 1
+        }
+      }
+    }
+  },
+  "limit":10,
+  "offline": false
+}

@@ -1,0 +1,525 @@
+<style>
+    #create_modal, #edit_modal {
+        width: 800px;
+        margin-left: -400px;
+    }
+
+    #create_modal .dropdown.selection, #edit_modal .dropdown.selection {
+        width: 800px;
+    }
+</style>
+
+<div class="ui form">
+    <div class="four fields">
+        <div class="field">
+            <label>用户名</label>
+            <div class="ui left input">
+                <input id="username" name="username"/>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>公司</label>
+            <div class="ui left input">
+                <input id="company" name="company"/>
+            </div>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <div class="ui positive submit button" onclick="search()">
+                <i class="icon search"></i> 搜索
+            </div>
+        </div>
+
+        <div class="field"></div>
+
+        <div class="right floated field clearfix" style="width:400px;padding-top:25px">
+            <button class="ui positive right floated button" onclick="create();">
+                <i class="icon write"></i>
+                添加 API 授权信息
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="ui grey segment tablebox" style="box-shadow:0 0 0 0;">
+    <table class="ui small very basic table">
+        <thead>
+        <tr>
+            <th width="40"></th>
+            <th width="200">用户名</th>
+            <th width="200">公司</th>
+            <th>API</th>
+            <th>查询方式</th>
+            <th width="80">计费模式</th>
+            <th width="40">售价</th>
+            <th width="60">状态</th>
+            <th width="100">创建时间</th>
+            <th width="60"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+        for (var i in rows) {
+            var row = rows[i];
+        %>
+        <tr>
+            <td style='color:#999;'><%= parseInt(offset) + parseInt(i) + 1 %></td>
+            <td><%= row['user']['username'] %></td>
+            <td><%= row['user']['company'] %></td>
+            <td><%= row.api ? row.api['name'] : '' %></td>
+            <td><%= row['query_type'] ? row['query_type'] : 'WEB' %></td>
+            <td><%= row['billing_mode'] == 0 ? '查询计费' : '查得计费' %></td>
+            <td><%= row['price'].toFixed(2) %> 元</td>
+            <td><%= row['status'] == 0 ? '停用' : '启用' %></td>
+            <td><%= common.format_date(row['created'], 'yyyy-MM-dd hh:mm:ss') %></td>
+            <td style="text-align:right;">
+                <a href="javascript:;" onclick="edit('<%= row['_id'] %>');">编辑</a> &nbsp;&nbsp;
+                <a href="javascript:;" onclick="del('<%= row['_id'] %>');">删除</a>
+            </td>
+        </tr>
+        <%
+        }
+        %>
+
+        <% } else { %>
+        <tr>
+            <td colspan="9" style="text-align:center;">暂无数据</td>
+        </tr>
+        <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- common.paging("/api_applies", "username=" + username + "&company=" + company, totalPage, offset, limit, 5) %>
+
+<div class="ui modal" id="create_modal">
+    <i class="close icon"></i>
+    <div class="tiny header">
+        添加 API 授权
+    </div>
+    <div class="content">
+        <form class="ui form" id="create_form">
+            <div class="two fields">
+                <div class="field">
+                    <label class="required_input">用户</label>
+                    <div class="ui left input">
+                        <select id="user_id" name="user_id" class="ui fluid dropdown">
+                            <option value="">选择授权用户</option>
+                            <%
+                            for (var i in users) {
+                                var user = users[i];
+                            %>
+                            <option value="<%= user['_id'] %>"><%= user['username'] %></option>
+                            <%
+                            }
+                            %>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required_input">查询方式</label>
+                    <div class="ui checked checkbox">
+                        <input type="checkbox" name="query_type" value="WEB" checked="">
+                        <label>WEB</label>
+                    </div>
+                    <div class="ui checked checkbox">
+                        <input type="checkbox" name="query_type" value="API" checked="">
+                        <label>API</label>
+                    </div>
+                </div>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label class="required_input">授权状态</label>
+                    <div class="ui left input">
+                        <select id="status" name="status" class="ui fluid dropdown">
+                            <option value="">选择授权状态</option>
+                            <option value="1">启用</option>
+                            <option value="0">停用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required_input">API</label>
+                    <div class="ui left input">
+                        <select id="apis" name="apis" class="ui fluid dropdown">
+                            <option value="">选择授权API</option>
+                            <%
+                            for (var i in apis) {
+                                var api = apis[i];
+                            %>
+                            <option value="<%= api['_id'] %>"><%= api['name'] %></option>
+                            <%
+                            }
+                            %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label class="required_input">客户计费模式</label>
+                    <div class="ui left input">
+                        <select id="billing_mode" name="billing_mode" class="ui fluid dropdown">
+                            <option value="0">查询计费</option>
+                            <option value="1">查得计费</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required_input">价格</label>
+                    <div class="ui left input">
+                        <input type="text" id="price" name="price"/>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="ui hidden divider"></div>
+    </div>
+    <div class="actions">
+        <div class="ui deny button">取消</div>
+        <div class="ui positive right labeled icon button">保存<i class="checkmark icon"></i></div>
+    </div>
+</div>
+
+<div class="ui modal" id="edit_modal">
+    <i class="close icon"></i>
+    <div class="tiny header">
+        编辑 API 授权信息
+    </div>
+    <div class="content">
+        <form class="ui form" id="edit_form">
+            <input type="hidden" id="_id"/>
+            <div class="two fields">
+                <div class="field">
+                    <label class="required_input">用户</label>
+                    <div class="ui left input">
+                        <select id="user_id" name="user_id" class="ui fluid dropdown">
+                            <option value="">选择授权用户</option>
+                            <%
+                            for (var i in users) {
+                                var user = users[i];
+                            %>
+                            <option value="<%= user['_id'] %>"><%= user['username'] %></option>
+                            <%
+                            }
+                            %>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required_input">查询方式</label>
+                    <div class="ui checked checkbox">
+                        <input type="checkbox" name="query_type1" value="WEB">
+                        <label>WEB</label>
+                    </div>
+                    <div class="ui checked checkbox">
+                        <input type="checkbox" name="query_type2" value="API">
+                        <label>API</label>
+                    </div>
+                </div>
+
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label class="required_input">授权状态</label>
+                    <div class="ui left input">
+                        <select id="status" name="status" class="ui fluid dropdown">
+                            <option value="">选择授权状态</option>
+                            <option value="1">启用</option>
+                            <option value="0">停用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required_input">API</label>
+                    <div class="ui left input">
+                        <select id="apis" name="apis" class="ui fluid dropdown">
+                            <option value="">选择授权API</option>
+                            <%
+                            for (var i in apis) {
+                                var api = apis[i];
+                            %>
+                            <option value="<%= api['_id'] %>"><%= api['name'] %></option>
+                            <%
+                            }
+                            %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label class="required_input">客户计费模式</label>
+                    <div class="ui left input">
+                        <select id="billing_mode" name="billing_mode" class="ui fluid dropdown">
+                            <option value="0">查询计费</option>
+                            <option value="1">查得计费</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required_input">价格</label>
+                    <div class="ui left input">
+                        <input type="text" id="price" name="price"/>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="ui hidden divider"></div>
+    </div>
+    <div class="actions">
+        <div class="ui deny button">取消</div>
+        <div class="ui positive right labeled icon button">保存<i class="checkmark icon"></i></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $(function () {
+        $('#username').val("<%= username %>");
+        $('#company').val("<%= company %>");
+        $(".dropdown").dropdown();
+    });
+
+    function search() {
+        location.href = encodeURI("?username=" + $("#username").val() + "&company=" + $("#company").val() + "&limit=<%= limit %>");
+    }
+    document.onkeydown=function(){
+        if (event.keyCode == 13){
+            search();
+        } else{
+        }
+    }
+    //创建应用
+    function create() {
+        $('#create_modal').modal({
+            autofocus: false,
+            onApprove: function () {
+                var user_id = $("#user_id", "#create_form").val();
+                var apis = $("#apis", "#create_form").val();
+                var status = $("#status", "#create_form").val();
+                var price = $("#price", "#create_form").val();
+                var billing_mode = $("#billing_mode", "#create_form").val();
+                let query_arr = $("input[name='query_type']", "#create_form");
+                let query_type_arr = [];
+                for (let i = 0; i < query_arr.length; i++) {
+                    if (query_arr[i].checked ) {
+                        query_type_arr.push(query_arr[i].value)
+                    }
+                }
+                let query_type = query_type_arr.toString().replace("[","").replace("]","")
+                alert(query_type);
+                var params = {
+                    user_id: user_id,
+                    api_id: apis,
+                    price: price,
+                    billing_mode: billing_mode,
+                    query_type: query_type,
+                    status: status
+                };
+
+                if (user_id == "") {
+                    swal("请选择用户!", "", "warning");
+                    return false;
+                }
+
+                if (apis == "") {
+                    swal("请选择 API!", "", "warning");
+                    return false;
+                }
+
+                if (query_type.length == 0) {
+                    swal("请选择查询方式!", "", "warning");
+                    return false;
+                }
+
+                $.post("/api_applies", params, function (data, status) {
+                    if (status == "success") {
+                        swal({
+                                title: "操作成功",
+                                text: "",
+                                type: "success",
+                                confirmButtonText: "确定",
+                            },
+                            function () {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 330);
+                            });
+                    } else {
+                        swal(data, "", "error");
+                    }
+                }).error(function (err) {
+                    swal(err.responseText, "", "error");
+                });
+
+                return false;
+            }
+        }).modal('show');
+    }
+
+    //编辑
+
+    function edit(id) {
+        $.get("/api_applies/" + id, function (data, status) {
+            if (status == "success") {
+
+                $("#_id", "#edit_modal").val(data._id);
+
+                $("#price", "#edit_modal").val(data.price);
+                let types = data.query_type.split(",");
+
+                let query_type1 = $("input[name='query_type1']", "#edit_modal");
+                let query_type2 = $("input[name='query_type2']", "#edit_modal");
+
+                let query1;
+                let query2;
+                for (let i = 0; i < query_type1.length; i++ ){
+                    query_type1.checked = false;
+                    query1 = query_type1[i];
+                }
+                for (let i = 0; i < query_type2.length; i++ ){
+                    query_type2.checked = false;
+                    query2 = query_type2[i];
+                }
+
+                for (let i = 0; i < types.length; i++) {
+                    if (types[i] == query1.value) {
+                        query1.checked = true
+                    }
+                    if (types[i] == query2.value) {
+                        query2.checked = true
+                    }
+                }
+
+                $('select[name="billing_mode"]', "#edit_modal").val(data.billing_mode);
+                $('select[name="user_id"]', "#edit_modal").val(data.user_id);
+                $('select[name="apis"]', "#edit_modal").val(data.api_id);
+                $('select[name="status"]', "#edit_modal").val(data.status);
+                $(".dropdown", "#edit_modal").dropdown();
+
+                $('#edit_modal').modal({
+                    autofocus: false,
+                    onApprove: function () {
+                        var _id = $("#_id", "#edit_modal").val();
+                        var user_id = $("#user_id", "#edit_form").val();
+                        var apis = $("#apis", "#edit_form").val();
+                        var billing_mode = $("#billing_mode", "#edit_form").val();
+                        var price = $("#price", "#edit_form").val();
+                        var status = $("#status", "#edit_form").val();
+                        let query_type = '';
+
+                        if (query1.checked && query2.checked ){
+                            query_type = query1.value + ',' + query2.value;
+                        }else if(query1.checked) {
+                            query_type = query1.value
+                        }else if(query2.checked){
+                            query_type = query2.value
+                        }
+
+                        var params = {
+                            user_id: user_id,
+                            api_id: apis,
+                            price: price,
+                            billing_mode: billing_mode,
+                            query_type: query_type,
+                            status: status
+                        };
+
+                        if (user_id == "") {
+                            swal("请选择用户!", "", "warning");
+                            return false;
+                        }
+
+                        if (apis == "") {
+                            swal("请选择 API!", "", "warning");
+                            return false;
+                        }
+
+                        if (query_type.length == 0) {
+                            swal("请选择查询方式!", "", "warning");
+                            return false;
+                        }
+                        $.ajax({
+                            type: "put",
+                            url: "/api_applies/" + id,
+                            data: params,
+                            success: function (data) {
+                            },
+                            complete: function (XMLHttpRequest, status) {
+                                if (status == "success") {
+                                    swal({
+                                            title: "操作成功",
+                                            text: "",
+                                            type: "success",
+                                            confirmButtonText: "确定",
+                                        },
+                                        function () {
+                                            setTimeout(function () {
+                                                location.reload();
+                                            }, 330);
+                                        });
+                                }
+                            },
+                            error: function (err) {
+                                swal(err.responseText, "", "error");
+                            }
+                        });
+
+                        return false;
+                    }
+                }).modal('show');
+            } else {
+                swal(data, "", "error");
+            }
+        });
+    }
+
+    //删除API
+    function del(id) {
+        swal({
+                title: "确定要删除吗",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "delete",
+                        url: "/api_applies/" + id,
+                        success: function (data) {
+                        },
+                        complete: function (XMLHttpRequest, status) {
+                            if (status == "success") {
+                                swal({
+                                        title: "操作成功",
+                                        text: "",
+                                        type: "success",
+                                        confirmButtonText: "确定",
+                                    },
+                                    function () {
+                                        setTimeout(function () {
+                                            location.reload();
+                                        }, 330);
+                                    });
+                            }
+                        },
+                        error: function (err) {
+                            swal(err.responseText, "", "error");
+                        }
+                    });
+                }
+            });
+    }
+</script>

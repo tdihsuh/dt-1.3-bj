@@ -1,0 +1,246 @@
+<style>
+    #create_modal, #edit_modal {
+        width: 800px;
+        margin-left: -400px;
+    }
+
+    #create_modal .dropdown.selection, #edit_modal .dropdown.selection {
+        width: 800px;
+    }
+</style>
+
+<div class="ui form">
+    <div class="five fields">
+        <div class="field">
+            <label>公司名称</label>
+        </div>
+        <div class="field">
+            <label>开始时间</label>
+        </div>
+        <div class="field">
+            <label>结束时间</label>
+        </div>
+        <div class="field">
+            <label>API</label>
+        </div>
+        <div class="field">
+
+        </div>
+    </div>
+    <div class="four fields">
+
+        <div class="field">
+            <div class="ui left input">
+                <input id="name" name="name" value="<%= key_word %>">
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="ui calendar" id="example1">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id="start_time" type="text" placeholder="Date" value="<%= from %>">
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="ui calendar" id="example2">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input id="end_time" type="text" placeholder="Date" value="<%= to %>">
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="ui left input">
+                <select id="api_id" name="api_id" class="ui fluid dropdown">
+                    <option value="all">全部</option>
+                    <%
+                    for (var i in apis) {
+                        var api = apis[i];
+                    %>
+                    <option value="<%= api['_id'] %>"><%= api['name'] %></option>
+                    <%
+                    }
+                    %>
+                </select>
+            </div>
+        </div>
+        <div class="field">
+            <div class="ui positive submit button" onclick="search()">
+                <i class="icon search"></i> 搜索
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ui grey segment tablebox" style="box-shadow:0 0 0 0;">
+    <table class="ui small very basic table">
+        <thead>
+        <tr>
+            <th></th>
+            <th>公司名称</th>
+            <th>查询方式</th>
+            <th>API</th>
+            <th>计费方式</th>
+
+            <th>单价</th>
+            <th>调用次数</th>
+            <th>匹配次数</th>
+            <th>总费用</th>
+        </tr>
+        </thead>
+        <tbody>
+        <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+        for (var i in rows) {
+            var row = rows[i];
+
+            if (!row.api) {
+                row.api = {}
+            }
+        %>
+        <tr>
+            <td style='color:#999;'><%= parseInt(offset) + parseInt(i) + 1 %></td>
+            <td><%= row['company'] %></td>
+            <td><%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.query_type %> <br/>
+                <%
+                });
+                %></td>
+            <td>
+                <%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.name %> <br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+                <%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.billing_mode == 0 ? "查询计费" : "查得计费" %> <br/>
+                <%
+                });
+                %>
+            </td>
+
+            <td>
+
+                <%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.price %>元 <br/>
+                <%
+                });
+                %>
+            </td>
+            <td>
+
+                <%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.query_number?q.query_number:'0' %> <br/>
+                <%
+                });
+                %>
+
+            </td>
+            <td>
+
+                <%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.hit_number? q.hit_number:'0' %> <br/>
+                <%
+                });
+                %>
+
+            </td>
+            <td>
+                <%
+                    var arr = row['rows'];
+                arr.forEach(function (q) {
+                %>
+                <%= q.cost_total?q.cost_total:'0.0' %> <br/>
+                <%
+                });
+                %>
+            </td>
+        </tr>
+        <%
+        }
+        %>
+        <% } else { %>
+        <tr>
+            <td colspan="10" style="text-align:center;">暂无数据</td>
+        </tr>
+        <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- common.paging("/custom_consumptions", "key_word=" + key_word + "&from=" + from + "&to=" + to, totalPage, offset, limit, 5) %>
+<link href="/styles/dist/components/calendar.css" rel="stylesheet">
+<script src="/js/calendar.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+    $(function () {
+        //设置菜单为选中状态
+        //activeUrl();
+        $('#api_id').val("<%= api_id %>");
+        $(".dropdown").dropdown();
+
+        $('#example1').calendar({
+            type: 'date',
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+        $('#example2').calendar({
+            type: 'date',
+            formatter: { // 自定义日期的格式
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var year = date.getFullYear();
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    return year + '-' + month + '-' + day;
+                }
+            }
+        });
+    });
+
+    //按照日期模糊搜索
+    function search() {
+        var time1 = $("#start_time").val();
+        var time2 = $("#end_time").val();
+        var name = $("#name").val();
+        location.href = encodeURI("?from=" + time1 + "&to=" + time2 + "&key_word=" + name + "&api_id=" + $('#api_id').val()+ "&limit=<%= limit %>");
+    }
+
+
+</script>
+

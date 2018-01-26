@@ -1,0 +1,209 @@
+<style>
+  #create_modal,#edit_modal{
+    width: 500px;
+    margin-left: -250px;
+  }
+  #create_modal .dropdown.selection,#edit_modal .dropdown.selection {
+    width: 500px;
+  }
+</style>
+
+<div class="ui form">
+  <div class="four fields">
+    <div class="field">
+      <label>用户名</label>
+      <div class="ui left input">
+        <input id="username" name="username" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>公司</label>
+      <div class="ui left input">
+        <input id="company" name="company" />
+      </div>
+    </div>
+    <div class="field">
+      <label>&nbsp;</label>
+      <div class="ui positive submit button" onclick="search()">
+        <i class="icon search"></i> 搜索
+      </div>
+    </div>
+    <div class="field"></div>
+    <div class="right floated field clearfix" style="width:400px;padding-top:25px">
+      <button class="ui positive right floated button" onclick="create();">
+        <i class="icon write"></i>
+        账号充值
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="ui grey segment tablebox" style="box-shadow:0 0 0 0;">
+  <table class="ui small very basic table">
+    <thead>
+      <tr>
+        <th width="40"></th>
+        <th width="200">用户名</th>
+        <th width="400">公司</th>
+        <th>充值额度</th>
+        <th>余额</th>
+        <th width="100">充值时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+          for (var i in rows) {
+            var row = rows[i];
+        %>
+          <tr>
+            <td style='color:#999;'><%=parseInt(offset) + parseInt(i) + 1%></td>
+            <td>
+                <%=row['user']['username']%>
+            </td>
+            <td>
+                <%=row['user']['company']%>
+            </td>
+            <td>
+                <%=row['recharge']%> 元
+            </td>
+            <td>
+                <%=row['user']['balance']%> 元
+            </td>
+            <td>
+                <%=common.format_date(row['created'], 'yyyy-MM-dd hh:mm:ss')%>
+            </td>
+          </tr>
+          <%
+          }
+          %>
+          <% } else { %>
+          <tr>
+            <td colspan="5" style="text-align:center;">暂无数据</td>
+          </tr>
+          <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%-common.paging("/payments", "&username=" + username + "&company="+company, totalPage, offset, limit, 5)%>
+
+<div class="ui modal" id="create_modal">
+  <i class="close icon"></i>
+  <div class="tiny header">
+    账号充值
+  </div>
+  <div class="content">
+    <form class="ui form" id="create_form">
+      <div class="field">
+        <label class="required_input">充值账号</label>
+        <div class="ui left input">
+          <select id="user_id" name="user_id" class="ui fluid dropdown">
+            <option value="">选择账号</option>
+            <%
+              for (var i in users) {
+                var user = users[i];
+            %>
+            <option value="<%=user['_id']%>"><%=user['username']%></option>
+            <%
+            }
+            %>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="required_input">充值金额</label>
+        <div class="ui right labeled input">
+          <input type="text" id="recharge" />
+          <div class="ui basic label">元</div>
+        </div>
+      </div>
+    </form>
+    <div class="ui hidden divider"></div>
+  </div>
+  <div class="actions">
+    <div class="ui deny button">取消</div>
+    <div class="ui positive right labeled icon button">充值<i class="checkmark icon"></i></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $(function() {
+    $('#username').val("<%=username%>");
+    $('#company').val("<%=company%>");
+    $(".dropdown").dropdown();
+  });
+
+  function search(){
+    location.href = encodeURI("?username="+$('#username').val()+"&company="+$('#company').val()+"&limit=<%=limit%>");
+  }
+
+  function toDecimal(x) {
+      var f = parseFloat(x);
+      if (isNaN(f)) {
+          return;
+      }
+      f = Math.round(x*100)/100;
+      return f;
+  }
+  //充值
+  function create() {
+    $('#create_modal').modal({
+      autofocus:false,
+      onApprove: function() {
+        var user_id = $("#user_id", "#create_form").val();
+        var recharge = $("#recharge", "#create_form").val();
+
+        var params = {
+          user_id: user_id,
+          recharge: parseFloat(recharge).toFixed(2)
+        };
+
+        if (user_id == "") {
+          swal("请选择充值账号!", "", "warning");
+          return false;
+        }
+
+        if (recharge == "") {
+          swal("请填写充值金额!", "", "warning");
+          return false;
+        }
+        if (recharge <= 0) {
+            swal("请填写充值金额!", "", "warning");
+            return false;
+        }
+
+        if (recharge >= 1000000000) {
+            swal("超出最大可充值金额!", "", "warning");
+            return false;
+        }
+        $.post("/payments", params, function(data, status) {
+          if (status == "success") {
+            swal({
+                title: "操作成功",
+                text: "",
+                type: "success",
+                confirmButtonText: "确定",
+              },
+              function() {
+                setTimeout(function() {
+                  location.reload();
+                }, 330);
+              });
+          } else {
+            swal(data, "", "error");
+          }
+        }).error(function(err) {
+          swal(err.responseText, "", "error");
+        });
+
+        return false;
+      }
+    }).modal('show');
+  }
+
+
+</script>

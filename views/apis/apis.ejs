@@ -1,0 +1,545 @@
+<style>
+  #create_modal,#edit_modal{
+    width: 800px;
+    margin-left: -400px;
+  }
+  #create_modal .dropdown.selection,#edit_modal .dropdown.selection {
+    width: 800px;
+  }
+</style>
+
+<div class="ui form">
+  <div class="four fields">
+    <div class="field">
+      <label>分类</label>
+      <select name="category" class="ui fluid dropdown">
+        <option value="all">全部</option>
+        <option value="person">个人</option>
+        <option value="company">企业</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>计费模式</label>
+      <select name="billing_mode" class="ui fluid dropdown">
+        <option value="all">全部</option>
+        <option value="0">查询计费</option>
+        <option value="1">查得计费</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>&nbsp;</label>
+      <div class="ui positive submit button" onclick="search()">
+        <i class="icon search"></i> 搜索
+      </div>
+    </div>
+    <div class="right floated field clearfix" style="width:400px;padding-top:25px">
+      <button class="ui positive right floated button" onclick="create();">
+        <i class="icon write"></i>
+        添加 API
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="ui grey segment tablebox" style="box-shadow:0 0 0 0;">
+  <table class="ui small very basic table">
+    <thead>
+      <tr>
+        <th width="40"></th>
+        <th>名称</th>
+        <th>分类</th>
+        <th>标识</th>
+        <th>描述</th>
+        <th>URI</th>
+        <th>服务提供商</th>
+        <th>联系方式</th>
+        <th>服务商计费模式</th>
+        <th>价格</th>
+        <th width="100">创建时间</th>
+        <th width="100"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%
+        if (rows && rows.length > 0) {
+        %>
+        <%
+          for (var i in rows) {
+            var row = rows[i];
+        %>
+          <tr>
+            <td style='color:#999;'><%=parseInt(offset) + parseInt(i) + 1%></td>
+            <td>
+              <%=row['name']%>
+            </td>
+            <td>
+              <%=row['category'] == "person"?'个人':'企业'%>
+            </td>
+            <td>
+              <%=row['identifier']%>
+            </td>
+            <td>
+              <%=row['description']%>
+            </td>
+            <td>
+              <%=row['uri']%>
+            </td>
+            <td>
+              <%=row['provider']%>
+            </td>
+            <td>
+              <%=row['provider_phone']%>
+            </td>
+            <td>
+              <%=row['billing_mode'] == 0?'查询计费':'查得计费'%>
+            </td>
+            <td>
+              <%=row['price'].toFixed(2)%> 元
+            </td>
+            <td>
+              <%=common.format_date(row['created'], 'yyyy-MM-dd hh:mm:ss')%>
+            </td>
+            <td style="text-align:right;">
+              <a href="javascript:;" onclick="edit('<%=row['_id']%>');">编辑</a> &nbsp;&nbsp;
+              <a href="javascript:;" onclick="del('<%=row['_id']%>');">删除</a>
+            </td>
+          </tr>
+          <%
+          }
+          %>
+
+          <% } else { %>
+          <tr>
+            <td colspan="12" style="text-align:center;">暂无数据</td>
+          </tr>
+          <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%-common.paging("/apis", "billing_mode="+billing_mode, totalPage, offset, limit, 5)%>
+
+<div class="ui modal" id="create_modal">
+  <i class="close icon"></i>
+  <div class="tiny header">
+    添加 API
+  </div>
+  <div class="content">
+    <form class="ui form" id="create_form">
+      <div class="three fields">
+        <div class="field">
+          <label class="required_input">分类</label>
+          <div class="ui left input">
+            <select id="category" name="category" class="ui fluid dropdown">
+              <option value="person">个人</option>
+              <option value="company">企业</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">API名称</label>
+          <div class="ui left input">
+            <input type="text" id="name" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">API描述</label>
+          <div class="ui left input">
+            <input type="text" id="description" />
+          </div>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="field">
+          <label class="required_input">AP标识</label>
+          <div class="ui left input">
+            <input type="text" id="identifier" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">API URI</label>
+          <div class="ui left input">
+            <input type="text" id="uri" />
+          </div>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="field">
+          <label class="required_input">服务提供商</label>
+          <div class="ui left input">
+            <input type="text" id="provider" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">联系方式</label>
+          <div class="ui left input">
+            <input type="text" id="provider_phone" />
+          </div>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="field">
+          <label class="required_input">服务商计费模式</label>
+          <div class="ui left input">
+            <select name="billing_mode" class="ui fluid dropdown">
+              <option value="0">查询计费</option>
+              <option value="1">查得计费</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">价格</label>
+          <div class="ui left input">
+            <input type="text" id="price" />
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="ui hidden divider"></div>
+  </div>
+  <div class="actions">
+    <div class="ui deny button">取消</div>
+    <div class="ui positive right labeled icon button">保存<i class="checkmark icon"></i></div>
+  </div>
+</div>
+
+<div class="ui modal" id="edit_modal">
+  <i class="close icon"></i>
+  <div class="tiny header">
+    编辑 API
+  </div>
+  <div class="content">
+    <form class="ui form" id="edit_form">
+      <input type="hidden" id="_id" />
+      <div class="three fields">
+        <div class="field">
+          <label class="required_input">分类</label>
+          <div class="ui left input">
+            <select id="category" name="category" class="ui fluid dropdown">
+              <option value="person">个人</option>
+              <option value="company">企业</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">API名称</label>
+          <div class="ui left input">
+            <input type="text" id="name" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">API描述</label>
+          <div class="ui left input">
+            <input type="text" id="description" />
+          </div>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="field">
+          <label class="required_input">AP标识</label>
+          <div class="ui left input">
+            <input type="text" id="identifier" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">API URI</label>
+          <div class="ui left input">
+            <input type="text" id="uri" />
+          </div>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="field">
+          <label class="required_input">服务提供商</label>
+          <div class="ui left input">
+            <input type="text" id="provider" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">联系方式</label>
+          <div class="ui left input">
+            <input type="text" id="provider_phone" />
+          </div>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="field">
+          <label class="required_input">服务商计费模式</label>
+          <div class="ui left input">
+            <select id="billing_mode" class="ui fluid dropdown">
+              <option value="0">查询计费</option>
+              <option value="1">查得计费</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="required_input">价格</label>
+          <div class="ui left input">
+            <input type="text" id="price" />
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="ui hidden divider"></div>
+  </div>
+  <div class="actions">
+    <div class="ui deny button">取消</div>
+    <div class="ui positive right labeled icon button">保存<i class="checkmark icon"></i></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+  $(function(){
+    $('select[name="category"]').val("<%=category%>");
+    $('select[name="billing_mode"]').val("<%=billing_mode%>");
+
+    $(".dropdown").dropdown();
+  });
+
+  function search(){
+    location.href=encodeURI("?billing_mode="+$('select[name="billing_mode"]').val()+"&category="+$('select[name="category"]').val()+"&limit=<%=limit%>");
+  }
+
+  //创建应用
+  function create() {
+    $('#create_modal').modal({
+      autofocus: false,
+      onApprove: function() {
+        var name = $("#name", "#create_form").val();
+        var description = $("#description", "#create_form").val();
+        var identifier = $("#identifier", "#create_form").val();
+        var uri = $("#uri", "#create_form").val();
+        var provider  = $("#provider", "#create_form").val();
+        var provider_phone = $("#provider_phone", "#create_form").val();
+        var price = $("#price", "#create_form").val();
+        var billing_mode = $("#billing_mode", "#create_form").val();
+        var category = $("#category", "#create_form").val();
+
+        if (name == "") {
+          swal("请填写API名称!", "", "warning");
+          return false;
+        }
+
+        if (description == "") {
+          swal("请填写API描述!", "", "warning");
+          return false;
+        }
+
+        if (identifier == "") {
+          swal("请填写API 标识!", "", "warning");
+          return false;
+        }
+
+        if (uri == "") {
+          swal("请填写API URI!", "", "warning");
+          return false;
+        }
+
+        if (provider == "") {
+          swal("请填写服务商名称!", "", "warning");
+          return false;
+        }
+
+        if (provider_phone == "") {
+          swal("请填写服务商联系方式!", "", "warning");
+          return false;
+        }
+
+        if (price == "") {
+          swal("请填写服务商计费价格!", "", "warning");
+          return false;
+        }
+
+        var params = {
+          name: name,
+          description: description,
+          identifier: identifier,
+          uri: uri,
+          provider: provider,
+          provider_phone: provider_phone,
+          price: price,
+          billing_mode: billing_mode,
+          category: category
+        };
+
+        $.post("/apis", params, function(data, status) {
+          if (status == "success") {
+            swal({
+                title: "操作成功",
+                text: "",
+                type: "success",
+                confirmButtonText: "确定",
+              },
+              function() {
+                setTimeout(function() {
+                  location.reload();
+                }, 330);
+              });
+          } else {
+            swal(data, "", "error");
+          }
+        }).error(function(err) {
+          swal(err.responseText, "", "error");
+        });
+
+        return false;
+      }
+    }).modal('show');
+  }
+
+  //编辑
+  function edit(id){
+    $.get("/apis/"+id, function(data, status) {
+      if (status == "success") {
+
+        $("#_id", "#edit_modal").val(data._id);
+        $("#name", "#edit_modal").val(data.name);
+        $("#description", "#edit_modal").val(data.description);
+        $("#identifier", "#edit_modal").val(data.identifier);
+        $("#uri", "#edit_modal").val(data.uri);
+        $("#provider", "#edit_modal").val(data.provider);
+        $("#provider_phone", "#edit_modal").val(data.provider_phone);
+        $("#price", "#edit_modal").val(data.price);
+        $("#billing_mode", "#edit_modal").dropdown("set selected",data.billing_mode);
+        $("#category", "#edit_modal").dropdown("set selected",data.category);
+
+        $('#edit_modal').modal({
+          autofocus: false,
+          onApprove: function() {
+            var _id = $("#_id", "#edit_modal").val();
+            var name = $("#name", "#edit_form").val();
+            var description = $("#description", "#edit_form").val();
+            var identifier = $("#identifier", "#edit_form").val();
+            var uri = $("#uri", "#edit_form").val();
+            var provider = $("#provider", "#edit_form").val();
+            var provider_phone = $("#provider_phone", "#edit_form").val();
+            var price = $("#price", "#edit_form").val();
+            var billing_mode = $("#billing_mode", "#edit_form").val();
+            var category = $("#category", "#edit_form").val();
+
+            if (name == "") {
+              swal("请填写API名称!", "", "warning");
+              return false;
+            }
+
+            if (description == "") {
+              swal("请填写API描述!", "", "warning");
+              return false;
+            }
+
+            if (identifier == "") {
+              swal("请填写API 标识!", "", "warning");
+              return false;
+            }
+
+            if (uri == "") {
+              swal("请填写API URI!", "", "warning");
+              return false;
+            }
+
+            if (provider == "") {
+              swal("请填写服务商名称!", "", "warning");
+              return false;
+            }
+
+            if (provider_phone == "") {
+              swal("请填写服务商联系方式!", "", "warning");
+              return false;
+            }
+
+            if (price == "") {
+              swal("请填写服务商计费价格!", "", "warning");
+              return false;
+            }
+
+            var params = {
+              name: name,
+              description: description,
+              identifier: identifier,
+              uri: uri,
+              provider: provider,
+              provider_phone: provider_phone,
+              price: price,
+              billing_mode:billing_mode,
+              category: category
+            };
+
+            $.ajax({
+              type: "put",
+              url: "/apis/" + id,
+              data: params,
+              success: function(data) {},
+              complete: function(XMLHttpRequest, status) {
+                if (status == "success") {
+                  swal({
+                      title: "操作成功",
+                      text: "",
+                      type: "success",
+                      confirmButtonText: "确定",
+                    },
+                    function() {
+                      setTimeout(function() {
+                        location.reload();
+                      }, 330);
+                    });
+                }
+              },
+              error: function(err) {
+                swal(err.responseText, "", "error");
+              }
+            });
+
+            return false;
+          }
+        }).modal('show');
+      } else {
+        swal(data, "", "error");
+      }
+    });
+  }
+
+  //删除API
+  function del(id) {
+    swal({
+        title: "确定要删除吗",
+        text: "",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        closeOnConfirm: false,
+        closeOnCancel: true
+      },
+      function(isConfirm) {
+        if (isConfirm) {
+          $.ajax({
+            type: "delete",
+            url: "/apis/" + id,
+            success: function(data) {},
+            complete: function(XMLHttpRequest, status) {
+              if (status == "success") {
+                swal({
+                    title: "操作成功",
+                    text: "",
+                    type: "success",
+                    confirmButtonText: "确定",
+                  },
+                  function() {
+                    setTimeout(function() {
+                      location.reload();
+                    }, 330);
+                  });
+              }
+            },
+            error: function(err) {
+              swal(err.responseText, "", "error");
+            }
+          });
+      }
+    });
+  }
+
+
+</script>
